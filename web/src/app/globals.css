@@ -1,0 +1,127 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --bg: #f4f6fb;
+  --bg-glow: #e6e9f6;
+  --surface: #ffffff;
+  --surface-2: #f1f3fa;
+  --fg: #0f172a;
+  --muted: #64748b;
+  --line: #e3e7f1;
+  --brand: #7c3aed;
+  --brand-soft: #ede9fe;
+  --brand-fg: #4c1d95;
+  --good: #16a34a;
+  --good-soft: #dcfce7;
+  --bad: #dc2626;
+  --bad-soft: #fee2e2;
+  --warn: #d97706;
+  --warn-soft: #fef3c7;
+  --shadow: 0 18px 45px -22px rgba(15, 23, 42, 0.45);
+}
+
+.dark {
+  --bg: #070b16;
+  --bg-glow: #0d1526;
+  --surface: #101a2e;
+  --surface-2: #16223a;
+  --fg: #e9eefb;
+  --muted: #94a3c0;
+  --line: #22304d;
+  --brand: #a78bfa;
+  --brand-soft: #2a2150;
+  --brand-fg: #ddd6fe;
+  --good: #4ade80;
+  --good-soft: #10311f;
+  --bad: #f87171;
+  --bad-soft: #3a1519;
+  --warn: #fbbf24;
+  --warn-soft: #3a2a08;
+  --shadow: 0 24px 60px -28px rgba(0, 0, 0, 0.9);
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-glow: var(--bg-glow);
+  --color-surface: var(--surface);
+  --color-surface2: var(--surface-2);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-brand: var(--brand);
+  --color-brandsoft: var(--brand-soft);
+  --color-brandfg: var(--brand-fg);
+  --color-good: var(--good);
+  --color-goodsoft: var(--good-soft);
+  --color-bad: var(--bad);
+  --color-badsoft: var(--bad-soft);
+  --color-warn: var(--warn);
+  --color-warnsoft: var(--warn-soft);
+  --shadow-card: var(--shadow);
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background:
+    radial-gradient(900px 500px at 12% -10%, var(--bg-glow), transparent 60%),
+    radial-gradient(700px 420px at 100% 0%, var(--bg-glow), transparent 55%),
+    var(--bg);
+  color: var(--fg);
+  font-family:
+    ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue",
+    "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+.hangul {
+  font-family: "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", "Gulim", sans-serif;
+  letter-spacing: 0.01em;
+}
+
+@keyframes hq-pop {
+  0% { transform: scale(0.9); opacity: 0; }
+  60% { transform: scale(1.03); opacity: 1; }
+  100% { transform: scale(1); }
+}
+@keyframes hq-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-7px); }
+  40% { transform: translateX(7px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+}
+@keyframes hq-rise {
+  from { transform: translateY(14px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+@keyframes hq-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+@keyframes hq-xp {
+  0% { transform: translateY(0) scale(1); opacity: 1; }
+  100% { transform: translateY(-42px) scale(1.35); opacity: 0; }
+}
+@keyframes hq-glow {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--brand) 45%, transparent); }
+  50% { box-shadow: 0 0 0 10px color-mix(in srgb, var(--brand) 0%, transparent); }
+}
+
+.anim-pop { animation: hq-pop 0.28s ease-out both; }
+.anim-shake { animation: hq-shake 0.4s ease-in-out both; }
+.anim-rise { animation: hq-rise 0.32s ease-out both; }
+.anim-float { animation: hq-float 3.2s ease-in-out infinite; }
+.anim-xp { animation: hq-xp 0.9s ease-out forwards; }
+.anim-glow { animation: hq-glow 2.2s ease-in-out infinite; }
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { scrollbar-width: none; }
+
+* { -webkit-tap-highlight-color: transparent; }
