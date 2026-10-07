@@ -11,6 +11,8 @@
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-336791?logo=postgresql)](https://www.postgresql.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
+**English** · [فارسی](docs/README.fa.md)
+
 <img src="docs/screenshots/01-home-roadmap.png" width="250" alt="Learning roadmap" />
 <img src="docs/screenshots/13-results.png" width="250" alt="Lesson results" />
 <img src="docs/screenshots/15-question-dark.png" width="250" alt="Quiz in dark mode" />
