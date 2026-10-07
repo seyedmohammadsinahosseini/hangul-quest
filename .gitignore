@@ -1,0 +1,40 @@
+# ---- OS noise ----
+.DS_Store
+Thumbs.db
+*~
+
+# ---- editors ----
+.idea/
+*.iml
+.vscode/*
+!.vscode/extensions.json
+
+# ---- secrets: never commit these ----
+.env
+.env.*
+!.env.example
+
+# ---- Node / Next.js (web/) ----
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+next-env.d.ts
+
+# ---- logs ----
+*.log
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ---- Flutter (mobile/) ----
+.dart_tool/
+.packages
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+pubspec.lock
+ios/Pods/
+ios/.symlinks/
+android/.gradle/
+android/local.properties

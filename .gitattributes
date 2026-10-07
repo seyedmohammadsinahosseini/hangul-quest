@@ -1,0 +1,31 @@
+# Normalise line endings for a mixed Node/Dart repository
+* text=auto eol=lf
+
+# Source
+*.ts   text
+*.tsx  text
+*.js   text
+*.mjs  text
+*.json text
+*.md   text
+*.css  text
+*.dart text
+*.yaml text
+*.yml  text
+*.sql  text
+*.sh   text eol=lf
+
+# Windows helper scripts must keep CRLF
+*.bat  text eol=crlf
+
+# Binary assets
+*.png binary
+*.jpg binary
+*.ico binary
+*.keystore binary
+
+# Keep generated dependency folders out of diffs and language stats
+node_modules/**     linguist-vendored
+.next/**            linguist-generated
+drizzle/meta/**     linguist-generated
+docs/screenshots/** linguist-documentation
