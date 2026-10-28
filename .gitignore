@@ -33,7 +33,6 @@ pnpm-debug.log*
 build/
 .flutter-plugins
 .flutter-plugins-dependencies
-pubspec.lock
 ios/Pods/
 ios/.symlinks/
 android/.gradle/

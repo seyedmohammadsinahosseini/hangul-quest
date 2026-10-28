@@ -25,7 +25,15 @@ class _AlphabetScreenState extends State<AlphabetScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SectionTitle('Hangul chart', sub: 'Tap any letter to hear it.', icon: Icons.grid_view_rounded,
-                  trailing: Tts.available ? const Pill('audio ready', tone: PillTone.good) : const Pill('no Korean voice', tone: PillTone.warn)),
+                  trailing: ValueListenableBuilder<TtsStatus>(
+                      valueListenable: Tts.status,
+                      builder: (context, status, _) => switch (status) {
+                        TtsStatus.ready => const Pill('audio ready', tone: PillTone.good),
+                        TtsStatus.pending => const Pill('checking audio…'),
+                        TtsStatus.missingVoice => const Pill('tap a letter to read it', tone: PillTone.warn),
+                        TtsStatus.unavailable => const Pill('audio unavailable', tone: PillTone.bad),
+                      }),
+                  ),
               Text(
                 'Korean is written in blocks: a consonant and a vowel always sit together, and a final consonant can be added underneath. Every block you will ever read is built from these 40 letters.',
                 style: TextStyle(fontSize: 12, height: 1.5, color: context.hq.muted),
@@ -53,7 +61,7 @@ class _AlphabetScreenState extends State<AlphabetScreen> {
                   active: _active == item,
                   onTap: () {
                     setState(() => _active = item);
-                    Tts.speak(item.split(' ').first);
+                    speakWithFeedback(context, item.split(' ').first);
                   },
                 ),
             ],
@@ -111,14 +119,21 @@ class _LetterTile extends StatelessWidget {
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
         onTap: onTap,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(parts[0], style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800, height: 1)),
-            const SizedBox(height: 2),
-            Text(parts.length > 1 ? parts[1] : '', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: context.hq.muted)),
-            Icon(Icons.volume_up_rounded, size: 12, color: active ? context.cs.primary : context.hq.muted.withValues(alpha: 0.5)),
-          ],
+        child: Padding(
+          padding: const EdgeInsets.all(6),
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(parts[0], style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800, height: 1)),
+                const SizedBox(height: 2),
+                Text(parts.length > 1 ? parts[1] : '', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: context.hq.muted)),
+                Icon(Icons.volume_up_rounded, size: 12, color: active ? context.cs.primary : context.hq.muted.withValues(alpha: 0.5)),
+              ],
+            ),
+          ),
         ),
       ),
     );

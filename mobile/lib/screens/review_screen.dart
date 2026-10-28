@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../main.dart';
-import '../services/tts.dart';
 import '../state/app_state.dart';
 import '../theme.dart';
 import '../widgets/ui.dart';
@@ -175,7 +174,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
                 borderRadius: BorderRadius.circular(16),
                 onTap: () {
                   setState(() => _revealed = true);
-                  Tts.speak(card.card.ko);
+                  speakWithFeedback(context, card.card.ko);
                 },
                 child: Container(
                   width: double.infinity,

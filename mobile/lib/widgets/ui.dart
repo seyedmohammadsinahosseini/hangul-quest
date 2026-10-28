@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -190,29 +191,95 @@ class Pill extends StatelessWidget {
   }
 }
 
-class SpeakerButton extends StatelessWidget {
+/// Guidance shown when the device cannot speak Korean.
+const String kTtsHelp =
+    'No Korean voice is installed on this device.\n'
+    'Android: Settings → System → Languages & input → Text-to-speech → install Korean.\n'
+    'iOS: Settings → Accessibility → Spoken Content → Voices → Korean.';
+
+/// Speaks [text] and tells the user why nothing happened, if it failed.
+///
+/// When the engine is already known to be missing a Korean voice the hint is
+/// shown immediately (and the attempt still runs in the background) so a tap
+/// never looks like it did nothing.
+Future<void> speakWithFeedback(BuildContext context, String text, {double rate = 0.45}) async {
+  final messenger = ScaffoldMessenger.maybeOf(context);
+  final known = Tts.status.value;
+
+  if (known == TtsStatus.missingVoice || known == TtsStatus.unavailable) {
+    _showTtsHint(messenger, known);
+    unawaited(Tts.speak(text, rate: rate));
+    return;
+  }
+
+  final said = await Tts.speak(text, rate: rate);
+  if (said) return;
+  _showTtsHint(messenger, Tts.status.value);
+}
+
+void _showTtsHint(ScaffoldMessengerState? messenger, TtsStatus status) {
+  messenger
+    ?..hideCurrentSnackBar()
+    ..showSnackBar(
+      SnackBar(
+        content: Text(
+          status == TtsStatus.unavailable
+              ? 'Audio could not start on this device.\n$kTtsHelp'
+              : kTtsHelp,
+        ),
+        duration: const Duration(seconds: 7),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+}
+
+class SpeakerButton extends StatefulWidget {
   final String text;
   final double size;
-  const SpeakerButton(this.text, {super.key, this.size = 36});
+  final double rate;
+  const SpeakerButton(this.text, {super.key, this.size = 36, this.rate = 0.45});
 
   @override
+  State<SpeakerButton> createState() => _SpeakerButtonState();
+}
+
+class _SpeakerButtonState extends State<SpeakerButton> {
+  @override
   Widget build(BuildContext context) {
-    return Material(
-      color: context.hq.surface2,
-      shape: CircleBorder(side: BorderSide(color: context.hq.line)),
-      child: InkWell(
-        customBorder: const CircleBorder(),
-        onTap: () => Tts.speak(text),
-        child: SizedBox(
-          width: size,
-          height: size,
-          child: Icon(Icons.volume_up_rounded, size: size * 0.5, color: context.cs.onSurface),
-        ),
-      ),
+    return ValueListenableBuilder<bool>(
+      valueListenable: Tts.speaking,
+      builder: (context, isSpeaking, _) {
+        final accent = Tts.available || Tts.status.value == TtsStatus.pending
+            ? context.cs.onSurface
+            : context.hq.muted;
+        return Semantics(
+          button: true,
+          label: 'Play Korean pronunciation',
+          child: Material(
+            color: isSpeaking ? context.hq.brandSoft : context.hq.surface2,
+            shape: CircleBorder(side: BorderSide(color: context.hq.line)),
+            child: InkWell(
+              customBorder: const CircleBorder(),
+              onTap: () => speakWithFeedback(context, widget.text, rate: widget.rate),
+              child: SizedBox(
+                width: widget.size,
+                height: widget.size,
+                child: Icon(
+                  isSpeaking ? Icons.graphic_eq_rounded : Icons.volume_up_rounded,
+                  size: widget.size * 0.5,
+                  color: isSpeaking ? context.cs.primary : accent,
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }
 
+/// A single metric tile. Height is driven by its content, never by an aspect
+/// ratio, so it cannot overflow when the user picks a larger system font.
 class StatTile extends StatelessWidget {
   final String label;
   final String value;
@@ -229,15 +296,90 @@ class StatTile extends StatelessWidget {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(label.toUpperCase(),
-              style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: context.hq.muted, letterSpacing: 0.8)),
+          Text(
+            label.toUpperCase(),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: context.hq.muted, letterSpacing: 0.8),
+          ),
           const SizedBox(height: 2),
-          Text(value, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+          // Long values ("12,345") shrink instead of overflowing.
+          Align(
+            alignment: Alignment.centerLeft,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text(value, maxLines: 1, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+            ),
+          ),
         ],
       ),
     );
   }
+}
+
+/// Lays [children] out in equal-width columns whose rows are as tall as their
+/// tallest child.
+///
+/// This replaces `GridView.count(childAspectRatio: …)`: a fixed aspect ratio
+/// gives each cell a height derived from the screen width, which is shorter
+/// than the text it holds on narrow screens or at font scales above 1.0 — that
+/// is what produced "BOTTOM OVERFLOWED BY 3.1 PIXELS" under the profile stats.
+class EvenGrid extends StatelessWidget {
+  final List<Widget> children;
+  final int columns;
+  final double gap;
+
+  const EvenGrid({super.key, required this.children, this.columns = 2, this.gap = 8});
+
+  @override
+  Widget build(BuildContext context) {
+    if (children.isEmpty) return const SizedBox.shrink();
+    final cols = columns < 1 ? 1 : columns;
+    final rows = <Widget>[];
+
+    for (var i = 0; i < children.length; i += cols) {
+      final row = children.sublist(i, math.min(i + cols, children.length));
+      rows.add(
+        IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              for (var c = 0; c < row.length; c++) ...[
+                if (c > 0) SizedBox(width: gap),
+                Expanded(child: row[c]),
+              ],
+            ],
+          ),
+        ),
+      );
+    }
+
+    return MediaQuery.withClampedTextScaling(
+      maxScaleFactor: 1.6,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          for (var i = 0; i < rows.length; i++) ...[
+            if (i > 0) SizedBox(height: gap),
+            rows[i],
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// Convenience wrapper: the usual 2×2 metric block.
+class StatGrid extends StatelessWidget {
+  final List<StatTile> tiles;
+  const StatGrid(this.tiles, {super.key});
+
+  @override
+  Widget build(BuildContext context) => EvenGrid(children: tiles);
 }
 
 class SectionTitle extends StatelessWidget {
