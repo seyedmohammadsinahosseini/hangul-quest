@@ -192,43 +192,43 @@ class HomeScreen extends StatelessWidget {
         // ------- achievements -------
         const SizedBox(height: 4),
         SectionTitle('Achievements', sub: '${state.achievements.where((a) => a.earned).length} / ${state.achievements.length} earned', icon: Icons.emoji_events_rounded),
-        GridView.count(
-          crossAxisCount: 2,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          mainAxisSpacing: 8,
-          crossAxisSpacing: 8,
-          childAspectRatio: 2.9,
-          children: [
-            for (final a in state.achievements.take(4))
-              Panel(
-                padding: const EdgeInsets.all(10),
-                borderColor: a.earned ? context.hq.good.withValues(alpha: 0.4) : null,
-                child: Row(
-                  children: [
-                    Container(
-                      width: 32,
-                      height: 32,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(color: a.earned ? context.hq.goodSoft : context.hq.surface2, borderRadius: BorderRadius.circular(10)),
-                      child: Icon(a.earned ? Icons.check_rounded : Icons.lock_outline_rounded, size: 16, color: a.earned ? context.hq.good : context.hq.muted),
+        EvenGrid(columns: 2, children: [
+          for (final a in state.achievements.take(4))
+            Panel(
+              padding: const EdgeInsets.all(10),
+              borderColor: a.earned ? context.hq.good.withValues(alpha: 0.4) : null,
+              child: Row(
+                children: [
+                  Container(
+                    width: 32,
+                    height: 32,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: a.earned ? context.hq.goodSoft : context.hq.surface2,
+                      borderRadius: BorderRadius.circular(10),
                     ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(a.title, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900), maxLines: 1, overflow: TextOverflow.ellipsis),
-                          Text('${a.progress}/${a.target}', style: TextStyle(fontSize: 11, color: context.hq.muted)),
-                        ],
-                      ),
+                    child: Icon(a.earned ? Icons.check_rounded : Icons.lock_outline_rounded,
+                        size: 16, color: a.earned ? context.hq.good : context.hq.muted),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(a.title,
+                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis),
+                        Text('${a.progress}/${a.target}', style: TextStyle(fontSize: 11, color: context.hq.muted), maxLines: 1),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-          ],
-        ),
+            ),
+        ]),
       ],
     );
   }

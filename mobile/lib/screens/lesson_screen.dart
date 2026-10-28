@@ -173,7 +173,7 @@ class _LessonScreenState extends State<LessonScreen> {
           ),
           const SizedBox(height: 12),
           _QuestionCard(
-            key: ValueKey('${_attempt}:${q.id}'),
+            key: ValueKey('$_attempt:${q.id}'),
             question: q,
             hints: _hints,
             busy: _busy,
@@ -564,6 +564,10 @@ class _ChoiceRoundState extends State<_ChoiceRound> {
   String? _picked;
   String? _eliminated;
 
+  /// Reveals the spoken word as text — a fallback for devices whose audio the
+  /// user cannot hear even though a Korean voice is installed.
+  bool _showListenText = false;
+
   List<Option> get _options => widget.question.options ?? const [];
 
   @override
@@ -608,28 +612,52 @@ class _ChoiceRoundState extends State<_ChoiceRound> {
     final replay = q.type == QType.listen ? (q.reveal ?? '') : q.prompt;
 
     Widget prompt;
-    if (q.type == QType.listen && Tts.available) {
-      prompt = Column(children: [
-        const SizedBox(height: 8),
-        Material(
-          color: context.cs.primary,
-          borderRadius: BorderRadius.circular(24),
-          child: InkWell(
-            borderRadius: BorderRadius.circular(24),
-            onTap: () => Tts.speak(replay),
-            child: const SizedBox(width: 80, height: 80, child: Icon(Icons.volume_up_rounded, color: Colors.white, size: 36)),
-          ),
-        ),
-        const SizedBox(height: 6),
-        Text('Tap to replay the audio', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: context.hq.muted)),
-        const SizedBox(height: 8),
-      ]);
-    } else if (q.type == QType.listen) {
-      prompt = Column(children: [
-        Hangul(replay, size: 36),
-        Text('No Korean voice on this device — read the word instead of listening.', textAlign: TextAlign.center, style: TextStyle(fontSize: 11, color: context.hq.muted)),
-        const SizedBox(height: 8),
-      ]);
+    if (q.type == QType.listen) {
+      prompt = ValueListenableBuilder<TtsStatus>(
+        valueListenable: Tts.status,
+        builder: (context, status, _) {
+          final canSpeak = status == TtsStatus.ready;
+          return Column(children: [
+            const SizedBox(height: 8),
+            if (canSpeak)
+              Material(
+                color: context.cs.primary,
+                borderRadius: BorderRadius.circular(24),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(24),
+                  onTap: () => speakWithFeedback(context, replay, rate: 0.8),
+                  child: const SizedBox(width: 80, height: 80, child: Icon(Icons.volume_up_rounded, color: Colors.white, size: 36)),
+                ),
+              )
+            else
+              // Audio is the whole question, so when the device cannot speak we
+              // show the word itself rather than leaving the round unanswerable.
+              Hangul(replay, size: 36),
+            const SizedBox(height: 6),
+            Text(
+              canSpeak
+                  ? 'Tap to replay the audio'
+                  : status == TtsStatus.pending
+                      ? 'Checking the audio engine…'
+                      : 'No Korean voice on this device — read the word instead.',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: context.hq.muted),
+            ),
+            if (canSpeak)
+              TextButton.icon(
+                onPressed: () => setState(() => _showListenText = !_showListenText),
+                icon: Icon(_showListenText ? Icons.visibility_off_rounded : Icons.subtitles_outlined, size: 16),
+                label: Text(_showListenText ? 'Hide text' : 'Show text'),
+                style: TextButton.styleFrom(
+                  visualDensity: VisualDensity.compact,
+                  textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+                ),
+              ),
+            if (canSpeak && _showListenText) Hangul(replay, size: 28),
+            const SizedBox(height: 8),
+          ]);
+        },
+      );
     } else {
       prompt = Padding(
         padding: const EdgeInsets.symmetric(vertical: 10),
@@ -690,15 +718,7 @@ class _ChoiceRoundState extends State<_ChoiceRound> {
       children: [
         prompt,
         if (twoCol)
-          GridView.count(
-            crossAxisCount: 2,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            mainAxisSpacing: 8,
-            crossAxisSpacing: 8,
-            childAspectRatio: 2.6,
-            children: tiles,
-          )
+          EvenGrid(columns: 2, children: tiles)
         else
           Column(children: [for (final t in tiles) Padding(padding: const EdgeInsets.only(bottom: 8), child: SizedBox(width: double.infinity, child: t))]),
       ],
@@ -898,7 +918,15 @@ class _BuilderRoundState extends State<_BuilderRound> {
                   child: InkWell(
                     borderRadius: BorderRadius.circular(16),
                     onTap: () => _tap(c),
-                    child: Center(child: Text(c.text, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800))),
+                    child: Padding(
+                    padding: const EdgeInsets.all(4),
+                    child: Center(
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(c.text, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+                      ),
+                    ),
+                  ),
                   ),
                 ),
               ),

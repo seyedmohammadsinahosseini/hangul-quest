@@ -70,26 +70,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ],
               ),
               const SizedBox(height: 14),
-              GridView.count(
-                crossAxisCount: 2,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                mainAxisSpacing: 8,
-                crossAxisSpacing: 8,
-                childAspectRatio: 2.6,
-                children: [
-                  StatTile('Accuracy', '${p.accuracy}%'),
-                  StatTile('XP balance', '${p.xpBalance}'),
-                  StatTile('Correct answers', '${p.correctAnswers}'),
-                  StatTile('Hints used', '${p.hintsUsed}'),
-                ],
-              ),
+              StatGrid([
+                StatTile('Accuracy', '${p.accuracy}%'),
+                StatTile('XP balance', '${p.xpBalance}'),
+                StatTile('Correct answers', '${p.correctAnswers}'),
+                StatTile('Hints used', '${p.hintsUsed}'),
+              ]),
               const SizedBox(height: 12),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('Today · ${p.xpToday}/${p.dailyGoal} XP', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: context.hq.muted)),
-                  Text('Longest streak ${p.longestStreak}d', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: context.hq.muted)),
+                  Flexible(
+                    child: Text(
+                      'Today · ${p.xpToday}/${p.dailyGoal} XP',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: context.hq.muted),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Flexible(
+                    child: Text(
+                      'Longest streak ${p.longestStreak}d',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.end,
+                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: context.hq.muted),
+                    ),
+                  ),
                 ],
               ),
               const SizedBox(height: 4),
