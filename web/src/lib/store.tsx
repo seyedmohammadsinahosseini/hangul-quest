@@ -193,18 +193,33 @@ export function useApp(): Ctx {
 /* ---------------- speech ---------------- */
 
 export function speak(text: string, rate = 0.85): boolean {
-  if (typeof window === "undefined" || !("speechSynthesis" in window)) return false;
+  if (typeof window === "undefined" || !("speechSynthesis" in window) || !text.trim()) return false;
   try {
+    const synthesis = window.speechSynthesis;
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = "ko-KR";
     utterance.rate = rate;
-    const voices = window.speechSynthesis.getVoices();
-    const ko =
-      voices.find((v) => v.lang?.toLowerCase().startsWith("ko")) ??
-      voices.find((v) => /ko[-_]kr/i.test(v.name));
+
+    // Voices are populated asynchronously by some browsers. Use a Korean voice
+    // when available, while still letting the browser's Korean locale fallback
+    // speak if its voice list is not ready yet.
+    const voices = synthesis.getVoices();
+    const ko = voices.find((v) => v.lang?.toLowerCase().startsWith("ko"));
     if (ko) utterance.voice = ko;
-    window.speechSynthesis.cancel();
-    window.speechSynthesis.speak(utterance);
+
+    // Avoid cancelling an idle synthesizer. In Chromium, cancel() followed by
+    // speak() in the same task can occasionally leave the speech queue muted.
+    const interrupting = synthesis.speaking || synthesis.pending;
+    if (interrupting) synthesis.cancel();
+    synthesis.resume();
+    if (interrupting) {
+      window.setTimeout(() => {
+        synthesis.resume();
+        synthesis.speak(utterance);
+      }, 80);
+    } else {
+      synthesis.speak(utterance);
+    }
     return true;
   } catch {
     return false;

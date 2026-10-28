@@ -6,11 +6,12 @@ import { SectionTitle } from "@/components/Shell";
 import { IconGrid, IconVolume } from "@/components/icons";
 import { Panel, Pill } from "@/components/ui";
 import { HANGUL_TABLE } from "@/lib/curriculum";
-import { speak, speechSupported } from "@/lib/store";
+import { speak, speechSupported, useKoreanVoice } from "@/lib/store";
 
 export default function AlphabetPage() {
   const [active, setActive] = useState<string | null>(null);
   const supported = typeof window !== "undefined" ? speechSupported() : false;
+  const koreanVoice = useKoreanVoice();
 
   return (
     <div className="space-y-5">
@@ -19,12 +20,22 @@ export default function AlphabetPage() {
           icon={<IconGrid className="h-4 w-4" />}
           title="Hangul chart"
           sub="Tap any letter to hear it."
-          right={supported ? <Pill tone="good">audio ready</Pill> : <Pill tone="warn">no TTS</Pill>}
+          right={
+            !supported ? <Pill tone="warn">TTS unavailable</Pill> :
+            koreanVoice ? <Pill tone="good">Korean audio ready</Pill> :
+            <Pill tone="warn">Korean voice not found</Pill>
+          }
         />
         <p className="text-xs text-muted">
           Korean is written in blocks: a consonant and a vowel always sit together, and a final consonant can
           be added underneath. Every block you will ever read is built from these 40 letters.
         </p>
+        {supported && !koreanVoice ? (
+          <p role="status" className="mt-3 rounded-xl bg-warnsoft px-3 py-2 text-xs text-warn">
+            This device has no Korean speech voice enabled. Download or enable a Korean voice in your
+            device&apos;s speech settings for Korean pronunciation; the app will still try the system voice.
+          </p>
+        ) : null}
       </Panel>
 
       {HANGUL_TABLE.map((group) => (
