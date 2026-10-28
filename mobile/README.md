@@ -35,12 +35,40 @@ flutter pub get
 flutter run
 ```
 
+`setup.sh` / `setup.bat` do all three steps in one go, patch `AndroidManifest.xml` for
+text-to-speech and then run `flutter analyze` + `flutter test`.
+
 Release build:
 
 ```bash
 flutter build apk --release        # Android
 flutter build ipa --release        # iOS (needs signing)
 ```
+
+## Checking it
+
+```bash
+flutter analyze    # must stay clean
+flutter test       # layout + audio regression tests
+```
+
+## Troubleshooting audio
+
+The audio buttons use the platform speech engine (`flutter_tts`) and speak `ko-KR`. If a tap shows
+a hint instead of speaking, the engine is fine but the device has no Korean voice:
+
+* **Android** — Settings → System → Languages & input → Text-to-speech → install the Korean voice
+  data. On Android 11+ the app also needs the `TTS_SERVICE` `<queries>` entry in
+  `AndroidManifest.xml`; `mobile/setup.sh` adds it and verifies it, and the app cannot see any TTS
+  engine without it.
+* **iOS** — Settings → Accessibility → Spoken Content → Voices → Korean. `lib/services/tts.dart`
+  sets the `.playback` audio session category, so the app speaks even with the ring/silent switch
+  on silent.
+* **Emulators** frequently ship without a Korean voice. Install it in the emulator's system
+  settings, or test on a real phone.
+
+`Tts.status` and `Tts.lastError` expose exactly what the engine reported, which is what the in-app
+hint is built from.
 
 ## Project layout
 

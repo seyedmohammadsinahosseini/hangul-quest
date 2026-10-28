@@ -6,10 +6,27 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+### Fixed
+- **Flutter — silent audio buttons.** The speech service now (a) verifies the Korean voice with
+  `isLanguageAvailable` instead of trusting the language list, (b) sets an iOS `playback` audio
+  session so the ring/silent switch no longer mutes it, (c) replaces the Android utterance queue
+  instead of stacking it, and (d) wraps every engine call in a timeout. A tap that cannot produce
+  sound now shows what to install instead of doing nothing.
+- **Flutter — `BOTTOM OVERFLOWED BY 3.1 PIXELS`** under the four profile stats. `GridView.count`
+  with a fixed `childAspectRatio` handed each tile a height derived from the screen width, which is
+  shorter than its content on narrow screens and at font scales above 1.0. Replaced with an
+  intrinsic-height `EvenGrid`/`StatGrid`; the "Today / longest streak" row and the listening prompt
+  were hardened the same way.
+- **Flutter — unanswerable listening questions.** When the device has no Korean voice the round now
+  shows the written word, and a "Show text" toggle is available even when audio works.
+- `mobile/setup.sh` and `setup.bat` now verify the Android `TTS_SERVICE` manifest patch and fail
+  loudly if it is missing, instead of leaving the app silently mute on Android 11+.
+
 ### Planned
 - Server-side answer validation and signed lesson sessions
 - Playwright end-to-end suite for the web client
-- Flutter widget tests for the quiz engine and unlock rules
+- Flutter widget tests for the quiz engine and unlock rules (layout + audio regressions are
+  covered by `mobile/test/`)
 - Optional cloud sync between the web and mobile clients
 
 ## [1.0.0] — 2026-10-07

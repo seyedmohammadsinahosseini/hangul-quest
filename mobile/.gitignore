@@ -1,10 +1,10 @@
 # Flutter / Dart
+# NOTE: pubspec.lock is intentionally committed — this is an app, not a library.
 .dart_tool/
 .packages
 build/
 .flutter-plugins
 .flutter-plugins-dependencies
-pubspec.lock
 *.iml
 .idea/
 
